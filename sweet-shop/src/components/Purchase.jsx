@@ -1,66 +1,43 @@
-import React, { useState } from 'react';
-import GulabJamunImg from '../assets/Gulabjamun.jpg';
-import RasgullaImg from '../assets/Rasgulla.jpg';
-import MysorePakImg from '../assets/Mysore_pak.jpg';
-import KajuKatliImg from '../assets/Kajukatli.jfif';
-import JalebiImg from '../assets/Jalebi.jfif';
-import LadooImg from '../assets/Motichoor_Laddu.jfif';
+import React, { useState, useEffect } from 'react';
+
 
 const Purchase = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('all');
 
-    // Mock data for sweets with cost and category
-    const products = [
-        {
-            id: 1,
-            name: 'Gulab Jamun',
-            cost: '₹120',
-            category: 'milk',
-            image: GulabJamunImg,
-            quantity: 10,
-        },
-        {
-            id: 2,
-            name: 'Rasgulla',
-            cost: '₹100',
-            category: 'bengali',
-            image: RasgullaImg,
-            quantity: 5,
-        },
-        {
-            id: 3,
-            name: 'Mysore Pak',
-            cost: '₹150',
-            category: 'milk',
-            image: MysorePakImg,
-            quantity: 0,
-        },
-        {
-            id: 4,
-            name: 'Kaju Katli',
-            cost: '₹300',
-            category: 'dry',
-            image: KajuKatliImg,
-            quantity: 8,
-        },
-        {
-            id: 5,
-            name: 'Jalebi',
-            cost: '₹80',
-            category: 'bengali',
-            image: JalebiImg,
-            quantity: 15,
-        },
-        {
-            id: 6,
-            name: 'Ladoo',
-            cost: '₹90',
-            category: 'milk',
-            image: LadooImg,
-            quantity: 0,
-        },
-    ];
+    const [products, setProducts] = useState([]);
+
+    const fetchSweets = async () => {
+        try {
+            const userData = JSON.parse(sessionStorage.getItem('user'));
+            const token = userData?.token;
+
+            if (!token) return;
+
+            const response = await fetch('http://localhost:8080/user/sweets', {
+                headers: {
+                    // Include auth token in header for secure access
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const mappedProducts = data.map(product => ({
+                    ...product,
+                    image: product.imageUrl, // Only use backend image
+                    cost: `₹${product.price}` // Map price to cost for display
+                }));
+                setProducts(mappedProducts);
+            }
+        } catch (error) {
+            console.error('Error fetching sweets:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchSweets();
+    }, []);
 
     // Filtering logic
     const filteredProducts = products.filter((product) => {
@@ -68,6 +45,37 @@ const Purchase = () => {
         const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
         return matchesSearch && matchesCategory;
     });
+
+    const handlePurchase = async (product) => {
+        try {
+            const userData = JSON.parse(sessionStorage.getItem('user'));
+            const token = userData?.token;
+
+            if (!token) {
+                alert('Please login to purchase items');
+                return;
+            }
+
+            const response = await fetch(`http://localhost:8080/user/purchase/${product.id}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                alert(`Successfully purchased ${product.name}!`);
+                fetchSweets(); // Refresh the product list to update quantities
+            } else {
+                const errorMsg = await response.text();
+                alert(`Purchase failed: ${errorMsg}`);
+            }
+        } catch (error) {
+            console.error('Purchase error:', error);
+            alert('An error occurred during purchase');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-pink-50 p-6 flex flex-col gap-6">
@@ -102,7 +110,7 @@ const Purchase = () => {
                     </div>
                 </div>
 
-                {/* Right side - Empty as Add Item button is removed */}
+        
                 <div className="hidden md:block"></div>
             </div>
 
@@ -121,14 +129,16 @@ const Purchase = () => {
                             </div>
                             <div className="p-5 flex-1 flex flex-col">
                                 <h3 className="text-xl font-bold tracking-tight text-gray-900 mb-2">{product.name}</h3>
-                                <p className="text-lg font-semibold text-pink-600 mb-4">{product.cost}</p>
+                                <p className="text-lg font-semibold text-pink-600 mb-2">{product.cost}</p>
+                                <p className="text-sm text-gray-600 mb-4">Quantity: {product.quantity}</p>
 
                                 <div className="mt-auto">
                                     <button
+                                        onClick={() => handlePurchase(product)}
                                         disabled={product.quantity === 0}
                                         className={`w-full text-white font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors flex items-center justify-center gap-2 ${product.quantity === 0
-                                                ? 'bg-gray-400 cursor-not-allowed'
-                                                : 'bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300'
+                                            ? 'bg-gray-400 cursor-not-allowed'
+                                            : 'bg-green-600 hover:bg-green-700 focus:ring-4 focus:ring-green-300'
                                             }`}
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

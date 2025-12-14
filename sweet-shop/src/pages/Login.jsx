@@ -7,16 +7,45 @@ function Login({ setUser }) {
   const navigate = useNavigate();
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     console.log('Login as', role, form);
 
-    if (role === 'admin') {
-      navigate('/products');
-    } else {
-      navigate('/purchase');
+    // Determine API endpoint based on selected role
+    const endpoint = role === 'admin'
+      ? 'http://localhost:8080/auth/admin/login'
+      : 'http://localhost:8080/auth/user/login';
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, password: form.password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const userData = { email: form.email, role: data.role, token: data.token };
+
+        // Store user session data for persistence
+        sessionStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+
+        // Navigate based on user role
+        if (userData.role === 'ADMIN' || form.role === 'admin' || role === 'admin') {
+          navigate('/products');
+        } else {
+          navigate('/purchase');
+        }
+      } else {
+        alert('Invalid credentials');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('An error occurred during login');
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -40,7 +69,7 @@ function Login({ setUser }) {
           </button>
         </div>
 
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Login</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Signin</h2>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm text-gray-700 mb-1">Email</label>
@@ -73,7 +102,7 @@ function Login({ setUser }) {
             type="submit"
             className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg px-4 py-2"
           >
-            Login as {role === 'admin' ? 'Admin' : 'User'}
+            Signin as {role === 'admin' ? 'Admin' : 'User'}
           </button>
         </form>
 

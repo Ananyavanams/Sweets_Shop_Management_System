@@ -8,11 +8,34 @@ function Signup() {
   const navigate = useNavigate();
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     console.log('Signup as', role, form);
-    // Show success message instead of redirecting
-    setIsSignedUp(true);
+
+    // Select registration endpoint based on user choice
+    const endpoint = role === 'admin'
+      ? 'http://localhost:8080/auth/admin/register'
+      : 'http://localhost:8080/auth/user/register';
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        // Send registration details to backend
+        body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
+      });
+
+      if (response.ok) {
+        // Show success message instead of redirecting
+        setIsSignedUp(true);
+      } else {
+        const errorText = await response.text();
+        alert(`Signup failed: ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      alert('An error occurred during signup');
+    }
   };
 
   return (
@@ -108,7 +131,7 @@ function Signup() {
             <p className="text-center text-sm text-gray-600 mt-4">
               Already have an account?{' '}
               <Link to="/login" className="text-red-600 hover:underline">Login</Link>
-              //add 
+
             </p>
           </>
         )}
