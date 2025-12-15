@@ -171,5 +171,3 @@ Developed by **Ananya Vanampally**.
 This project was built for educational purposes to demonstrate full-stack development and secure coding practices.
 
 ```
-
-
