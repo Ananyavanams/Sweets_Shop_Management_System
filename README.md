@@ -164,7 +164,32 @@ http://localhost:3000
 * Sensitive data stored using environment variables
 
 ---
+## 📸 Screenshots
 
+### Admin Login
+![Admin Login](screenshots/Admin_Login.png)
+
+### User Login
+![User Login](screenshots/User_Login.png)
+
+### Sign In
+![Sign In](screenshots/SignIn.png)
+
+### Sign Up
+![Sign Up](screenshots/SignUp.png)
+
+### Home Screen (User)
+![Home Screen 1](screenshots/Home1.png)
+![Home Screen 2](screenshots/Home2.png)
+
+### Add Sweet
+![Add Sweet](screenshots/Add_Sweet.png)
+
+### Edit Sweet
+![Edit Sweet](screenshots/Edit_Sweet.png)
+
+### Restock Sweet
+![Restock Sweet](screenshots/Restock_Sweet.png)
 ## 📝 Author
 
 Developed by **Ananya Vanampally**.
